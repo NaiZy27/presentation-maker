@@ -1,0 +1,29 @@
+# Environment
+.env
+.venv/
+venv/
+ 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+ 
+# Generated presentations
+pres_*.pptx
+output/
+ 
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Claude Code
+.claude/
+ 
+# Logs
+*.log
+logs/
+ 
