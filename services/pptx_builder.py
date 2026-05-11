@@ -17,13 +17,24 @@ _TEMPLATE_PATH = Path(__file__).parent.parent / "templates" / "prs_exmp.pptx"
 def _sanitize(text: str) -> str:
     if not isinstance(text, str):
         return str(text) if text is not None else ""
-    text = text.replace("--", "-").replace("—", "-")
+    text = re.sub(r'-{2,}', '-', text)              # -- или --- → один дефис
+    text = re.sub(r'\s*[—–]\s*', ' - ', text)      # em/en dash → дефис
     for char in ('​', '﻿', '‌', '‍', '‎', '‏', ' ', ' '):
         text = text.replace(char, "")
     text = text.replace('\xa0', ' ')
     text = re.sub(r' +', ' ', text)
     text = text.replace("**", "").replace("__", "")
+    # Strip leading dash/bullet markers from lines (template already has bullet formatting)
+    text = re.sub(r'(?m)^[\-–•]\s+', '', text)
     return text.strip()
+
+
+def _truncate_at_sentence(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    last = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
+    return cut[:last + 1] if last > limit // 2 else cut
 
 
 def _replace_text_markers(slide, n: int, header: str, text: str) -> None:
@@ -65,7 +76,7 @@ def _build_sync(content: PresentationContent, images: list[bytes | None], output
         _replace_text_markers(
             slide, n,
             header=_sanitize(slide_content.header)[:80],
-            text=_sanitize(slide_content.text)[:500],
+            text=_truncate_at_sentence(_sanitize(slide_content.text), 1200),
         )
 
         if images[i] is not None:
