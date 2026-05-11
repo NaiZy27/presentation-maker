@@ -11,9 +11,9 @@ brew services start redis
 ```
 
 ### 2. Получить ключи
-- **Telegram Bot Token** — у [@BotFather](https://t.me/BotFather)
-- **Gemini API Key** — на [ai.google.dev](https://ai.google.dev)
-- **Unsplash Access Key** — на [unsplash.com/developers](https://unsplash.com/developers) (создать приложение)
+- **Telegram Bot Token** - [@BotFather](https://t.me/BotFather)
+- **Gemini API Key** - [ai.google.dev](https://ai.google.dev)
+- **Unsplash Access Key** - [unsplash.com/developers](https://unsplash.com/developers) (создать приложение)
 
 ### 3. Настроить окружение
 ```bash
@@ -33,11 +33,7 @@ python main.py
 
 1. В Telegram: `/start`
 2. Ввести тему презентации
-3. Выбрать язык (Русский / English)
+3. Выбрать язык (Русский / Английский)
 4. Ввести требования или нажать «Без особых требований»
 5. Получить готовый `.pptx`
 6. Открыть в PowerPoint, заполнить титульный слайд (Группа, ФИО)
-
-## Структура
-
-См. `CLAUDE.md` для детальной архитектуры.
