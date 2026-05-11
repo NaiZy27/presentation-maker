@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 class SlideContent(BaseModel):
     header: str = Field(..., max_length=80)
-    text: str = Field(..., max_length=1000)
+    text: str = Field(..., max_length=1750)
     image_query: str = Field(..., max_length=80)
 
 
