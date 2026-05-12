@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 _client = genai.Client(api_key=config.gemini_api_key.get_secret_value())
 
-_MODEL = "gemini-2.5-flash-lite"
+_MODEL = "gemini-3.1-flash-lite"
 _MAX_RETRIES = 3
 _RETRY_DELAY = 2.0
 
