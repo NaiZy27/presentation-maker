@@ -15,11 +15,14 @@ from bot.keyboards import (
 )
 from services.gemini import generate_content
 from services.pptx_builder import build_presentation
+from core.config import config
 from core.logger import get_logger
 
 logger = get_logger(__name__)
 
 router = Router()
+router.message.filter(F.from_user.id == config.allowed_user_id)
+router.callback_query.filter(F.from_user.id == config.allowed_user_id)
 
 _START_TEXT = (
     "Привет! Я помогу создать презентацию для РЭУ им. Г.В. Плеханова.\n\n"

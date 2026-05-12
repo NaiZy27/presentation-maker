@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     redis_url: RedisDsn
     gemini_api_key: SecretStr
     unsplash_access_key: SecretStr
+    allowed_user_id: int
 
     model_config = SettingsConfigDict(
         env_file=env_file_path,
