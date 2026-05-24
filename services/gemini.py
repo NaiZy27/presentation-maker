@@ -5,7 +5,7 @@ from google.genai import types as genai_types
 from core.config import config
 from core.models import PresentationContent
 from core.logger import get_logger
-from prompts.system_prompt import build_prompt
+from prompts.system_prompt import build_prompt_10, build_prompt_15
 
 logger = get_logger(__name__)
 
@@ -35,8 +35,8 @@ _RESPONSE_SCHEMA = {
 }
 
 
-async def generate_content(topic: str, language: str, requirements: str) -> PresentationContent:
-    prompt = build_prompt(topic, language, requirements)
+async def generate_content(topic: str, language: str, requirements: str, slide_count: int = 10) -> PresentationContent:
+    prompt = (build_prompt_15 if slide_count == 15 else build_prompt_10)(topic, language, requirements)
 
     for attempt in range(1, _MAX_RETRIES + 1):
         try:

@@ -9,6 +9,7 @@ from aiogram.fsm.context import FSMContext
 from bot.states import PrsGeneration
 from bot.keyboards import (
     language_keyboard,
+    slides_keyboard,
     no_requirements_keyboard,
     remove_keyboard,
     document_keyboard,
@@ -32,6 +33,11 @@ _START_TEXT = (
 _LANG_CALLBACKS = {
     "lang_ru": ("русский", "🇷🇺"),
     "lang_en": ("английский", "🇬🇧"),
+}
+
+_SLIDES_CALLBACKS = {
+    "slides_10": 10,
+    "slides_15": 15,
 }
 
 
@@ -59,6 +65,26 @@ async def handle_language(callback: types.CallbackQuery, state: FSMContext) -> N
     await callback.answer(f"Язык выбран {flag}")
     await state.update_data(language=language)
     await callback.message.answer(
+        "Выбери количество слайдов:",
+        reply_markup=slides_keyboard,
+    )
+    await state.set_state(PrsGeneration.selecting_slides)
+
+
+@router.message(PrsGeneration.selecting_language)
+async def delete_language_state_message(message: types.Message) -> None:
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+
+@router.callback_query(PrsGeneration.selecting_slides, F.data.in_({"slides_10", "slides_15"}))
+async def handle_slides(callback: types.CallbackQuery, state: FSMContext) -> None:
+    slide_count = _SLIDES_CALLBACKS[callback.data]
+    await callback.answer(f"{slide_count} слайдов выбрано")
+    await state.update_data(slide_count=slide_count)
+    await callback.message.answer(
         "Есть особые требования к презентации?\n"
         "Напиши их или нажми кнопку ниже:",
         reply_markup=no_requirements_keyboard,
@@ -66,8 +92,8 @@ async def handle_language(callback: types.CallbackQuery, state: FSMContext) -> N
     await state.set_state(PrsGeneration.selecting_requirements)
 
 
-@router.message(PrsGeneration.selecting_language)
-async def delete_language_state_message(message: types.Message) -> None:
+@router.message(PrsGeneration.selecting_slides)
+async def delete_slides_state_message(message: types.Message) -> None:
     try:
         await message.delete()
     except Exception:
@@ -79,10 +105,11 @@ async def handle_requirements(message: types.Message, state: FSMContext) -> None
     user_data = await state.get_data()
     topic = user_data["topic"]
     language = user_data["language"]
+    slide_count = user_data["slide_count"]
     requirements = message.text.strip()
 
     await state.set_state(PrsGeneration.generating)
-    await _run_generation(message, state, topic, language, requirements, user_id=message.from_user.id)
+    await _run_generation(message, state, topic, language, requirements, slide_count, user_id=message.from_user.id)
 
 
 @router.message(PrsGeneration.generating)
@@ -114,6 +141,7 @@ async def handle_regenerate(callback: types.CallbackQuery, state: FSMContext) ->
         topic=user_data["regen_topic"],
         language=user_data["regen_language"],
         requirements=user_data["regen_requirements"],
+        slide_count=user_data["regen_slide_count"],
         user_id=callback.from_user.id,
     )
 
@@ -124,12 +152,13 @@ async def _run_generation(
     topic: str,
     language: str,
     requirements: str,
+    slide_count: int,
     user_id: int,
 ) -> None:
     progress = await message.answer("✏️ Генерация текста...", reply_markup=remove_keyboard)
 
     try:
-        content = await generate_content(topic, language, requirements)
+        content = await generate_content(topic, language, requirements, slide_count)
 
         await progress.delete()
         progress = await message.answer("🔍 Поиск картинок...")
@@ -140,7 +169,7 @@ async def _run_generation(
         try:
             await progress.delete()
             progress = await message.answer("🧱 Собираю презентацию...")
-            await build_presentation(content, output_path)
+            await build_presentation(content, output_path, slide_count)
 
             await message.answer_document(
                 types.FSInputFile(output_path, filename=f"{safe_topic}_{user_id}.pptx"),
@@ -153,7 +182,12 @@ async def _run_generation(
 
         await progress.delete()
 
-        await state.update_data(regen_topic=topic, regen_language=language, regen_requirements=requirements)
+        await state.update_data(
+            regen_topic=topic,
+            regen_language=language,
+            regen_requirements=requirements,
+            regen_slide_count=slide_count,
+        )
         await state.set_state(None)
         await message.answer("Для новой презентации напиши /start 🚀")
 

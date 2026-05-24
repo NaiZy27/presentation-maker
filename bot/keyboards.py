@@ -1,5 +1,12 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 
+slides_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[[
+        InlineKeyboardButton(text="10 слайдов", callback_data="slides_10"),
+        InlineKeyboardButton(text="15 слайдов", callback_data="slides_15"),
+    ]]
+)
+
 language_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[[
         InlineKeyboardButton(text="Русский 🇷🇺", callback_data="lang_ru"),

@@ -11,7 +11,8 @@ from services.images import search_image
 
 logger = get_logger(__name__)
 
-_TEMPLATE_PATH = Path(__file__).parent.parent / "templates" / "prs_exmp.pptx"
+_TEMPLATE_10 = Path(__file__).parent.parent / "templates" / "prs_exmp_10.pptx"
+_TEMPLATE_15 = Path(__file__).parent.parent / "templates" / "prs_exmp_15.pptx"
 
 
 def _sanitize(text: str) -> str:
@@ -66,12 +67,13 @@ def _replace_image_group(slide, n: int, image_bytes: bytes) -> None:
     logger.warning("Image group %r not found on slide %d", image_marker, n)
 
 
-def _build_sync(content: PresentationContent, images: list[bytes | None], output_path: str) -> None:
-    prs = Presentation(str(_TEMPLATE_PATH))
+def _build_sync(content: PresentationContent, images: list[bytes | None], output_path: str, slide_count: int) -> None:
+    template = _TEMPLATE_15 if slide_count == 15 else _TEMPLATE_10
+    prs = Presentation(str(template))
 
     for i, slide_content in enumerate(content.slides):
         n = i + 1
-        slide = prs.slides[i + 1]  # slides 2–11 (index 1–10)
+        slide = prs.slides[i + 1]  # slide index 0 is title, content starts at 1
 
         _replace_text_markers(
             slide, n,
@@ -88,11 +90,11 @@ def _build_sync(content: PresentationContent, images: list[bytes | None], output
     logger.info("Presentation saved to %s", output_path)
 
 
-async def build_presentation(content: PresentationContent, output_path: str) -> None:
+async def build_presentation(content: PresentationContent, output_path: str, slide_count: int = 10) -> None:
     logger.info("Downloading %d images...", len(content.slides))
     images = await asyncio.gather(
         *[search_image(slide.image_query) for slide in content.slides]
     )
 
     logger.info("Building pptx...")
-    await asyncio.to_thread(_build_sync, content, list(images), output_path)
+    await asyncio.to_thread(_build_sync, content, list(images), output_path, slide_count)
